@@ -1,0 +1,17 @@
+{
+  "name": "bomberman",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "scripts": {
+    "test": "scripts/test.sh",
+    "lint:sol": "solium -d .",
+    "lint:sol:fix": "solium -d . --fix",
+    "coverage": "scripts/coverage.sh"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@openzeppelin/contracts": "^2.3.0"
+  }
+}
