@@ -64,24 +64,24 @@ contract Bomberman {
 
     // Modifier
     modifier onlyHost() {
-        require(msg.sender == host);
+        require(msg.sender == host, "Not host");
         _;
     }
 
     modifier checkState(State _state) {
-        require(gameStatus == _state);
+        require(gameStatus == _state, "Invalid State");
         _;
     }
 
     modifier onlyAlive(address _target) {
-        require(alive[_target]);
+        require(alive[_target], "Not Alive");
         _;
     }
 
 
     // Constructor
     constructor(address _host) public {
-        require(_host != address(0));
+        require(_host != address(0), "Zero address");
         host = _host;
         gameStatus = State.CREATED;
     }
@@ -89,7 +89,7 @@ contract Bomberman {
 
     // fallback
     function() external payable {
-        require(msg.sender == address(this));
+        require(msg.sender == address(this), "Just for this contract");
         reward = reward.add(msg.value);
     }
 
@@ -108,9 +108,9 @@ contract Bomberman {
 
     // Public Functions
     function openGame(uint256 _participantNumbers, uint256 _stake) public onlyHost checkState(State.CREATED) payable {
-        require(_participantNumbers >= MIN_GUESTS);
-        require(_participantNumbers <= MAX_GUESTS);
-        require(_stake > MIN_STAKE);
+        require(_participantNumbers >= MIN_GUESTS, "Too much _participantNumbers");
+        require(_participantNumbers <= MAX_GUESTS, "Too few _participantNumbers");
+        require(_stake > MIN_STAKE, "Too much _stake");
 
         participantNumbers = _participantNumbers;
         stake = _stake;
@@ -123,10 +123,10 @@ contract Bomberman {
     }
 
     function join() public payable checkState(State.OPENED) {
-        require(!_isContract(msg.sender));
-        require(msg.value >= stake);
-        require(!alive[msg.sender]);
-        require(participants.length < participantNumbers);
+        require(!_isContract(msg.sender), "Contract");
+        require(msg.value >= stake, "Insufficient funds");
+        require(!alive[msg.sender], "Already joined");
+        require(participants.length < participantNumbers, "Fully joined");
 
         alive[msg.sender] = true;
         credits[msg.sender] = CREDIT;
@@ -142,7 +142,7 @@ contract Bomberman {
     }
 
     function cancelGame() public checkState(State.OPENED) onlyAlive(msg.sender) {
-        require(block.timestamp >= openedTime.add(JOIN_WAITING_TIME));
+        require(block.timestamp >= openedTime.add(JOIN_WAITING_TIME), "Should wait more to cancel");
 
         uint256 joinedNumber = participants.length;
         for (uint256 i = 0; i < joinedNumber; i++) {
@@ -156,9 +156,9 @@ contract Bomberman {
         emit GameCanceled(block.timestamp);
     }
 
-    function readyGame() public checkState(State.OPENED) {
-        require(participants.length == participantNumbers);
-        gameStatus == State.READY;
+    function readyGame() public onlyAlive(msg.sender) checkState(State.OPENED) {
+        require(participants.length == participantNumbers, "Not ready");
+        gameStatus = State.READY;
         participantsLeft = participants.length;
         emit GameReady(reward);
     }
@@ -200,7 +200,7 @@ contract Bomberman {
     }
 
     function explode() public checkState(State.IN_GAME) {
-        require(!isExplosionTimeLeft());
+        require(!isExplosionTimeLeft(), "Explosion time left");
         emit BombExploded(bomberman, lastDeliveryman);
         _kill(bomberman);
 
@@ -212,7 +212,7 @@ contract Bomberman {
     }
 
     function endGame() public onlyAlive(msg.sender) checkState(State.READY) {
-        require(participantsLeft < MAX_WINNERS);
+        require(participantsLeft < MAX_WINNERS, "Too much winners");
         rewardPerWinner = reward.div(participantsLeft);
 
         gameStatus = State.ENDED;
@@ -234,9 +234,8 @@ contract Bomberman {
         return (size > 0);
     }
 
-    function _kill(address _target) private {
-        require(participantsLeft > 1);
-        require(alive[_target]);
+    function _kill(address _target) onlyAlive(_target) private {
+        require(participantsLeft > 1, "At least 1 should be alive");
 
         alive[_target] = false;
         if (credits[_target] > 0) {
