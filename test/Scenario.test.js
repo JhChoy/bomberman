@@ -9,7 +9,10 @@ contract('Bomberman Game', accounts => {
   let bombermanPlatform;
 
   before(async () => {
-    bombermanPlatform = await BombermanPlatform.new({ from: owner });
+    // bombermanPlatform = await BombermanPlatform.new({ from: owner });
+    bombermanPlatform = await BombermanPlatform.at('0x56bba0957F89A5c2d4da1696139783cc0D968ACD');
+    // await web3.eth.sendTransaction({value: ether('10'), to: '0x6104e1C571c5095E04e8C26eFcA0Dd07ce8FCeBc', from: owner});
+    console.log('BombermanPlatform', bombermanPlatform.address);
   });
 
   describe('A game', () => {

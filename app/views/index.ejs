@@ -28,8 +28,8 @@
         <% } %>
       </ul>
     </div>
-    <h3>Make New Game</h3>
     <div id="makeNewGame">
+      <h3>Make New Game</h3>
       <form onsubmit="return false;">
         makeNewGame<br>
         <input type="button" value="Send" onclick="makeNewGame()">
@@ -86,7 +86,7 @@
         }
       }, 100);
 
-      bombermanPlatform = web3.eth.contract(ABI.bombermanPlatform).at('0xa2180F16331B0DAc86c93DfE82f927985d24D6E1');
+      bombermanPlatform = web3.eth.contract(ABI.bombermanPlatform).at('0x56bba0957F89A5c2d4da1696139783cc0D968ACD');
     });
 
     function makeNewGame() {

@@ -95,6 +95,28 @@ contract Bomberman {
 
 
     // Getter Functions
+    function getAllParticipants() public view returns(address[] memory) {
+        uint256 length = participants.length;
+        address[] memory players = new address[](length);
+        for (uint256 i = 0; i < length; i++) {
+            players[i] = participants[i];
+        }
+        return players;
+    }
+
+    function getAllPlayerStatus() public view returns(address[] memory, bool[] memory, uint256[] memory) {
+        uint256 length = participants.length;
+        address[] memory players = new address[](length);
+        bool[] memory isAlive = new bool[](length);
+        uint256[] memory leftCredits = new uint256[](length);
+        for (uint256 i = 0; i < length; i++) {
+            players[i] = participants[i];
+            isAlive[i] = alive[players[i]];
+            leftCredits[i] = credits[players[i]];
+        }
+        return (players, isAlive, leftCredits);
+    }
+
     function isExplosionTimeLeft() public view returns(bool) {
         if (block.timestamp >= roundExplosionTime) {
             return false;
@@ -172,6 +194,7 @@ contract Bomberman {
 
         gameStatus = State.IN_GAME;
         emit GameStarted(round, roundExplosionTime);
+        emit BombDelivered(address(this), msg.sender, address(this), deliveryExplosionTime);
     }
 
     function deliver(address _from, address _to) public onlyAlive(msg.sender) onlyAlive(_from) onlyAlive(_to) checkState(State.IN_GAME) {
