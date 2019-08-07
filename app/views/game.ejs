@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Address: <%= address %></p>
+    <p>Host: <%= host %></p>
+    <div id="totalReward"></div>
+
+    <div id="gameStatus">
+      <h2>Game Created</h2>
+      <div class="timer"></div>
+      <div id="round"></div>
+    </div>
+
+    <div id="explosionTime">
+      <div id="roundExplosionTime" class="timer"></div>
+      <div id="deliveryExplosionTime" class="timer"></div>
+    </div>
+
+    <span id="deliverLogs"></span>
+
+    <div id="join">
+      <form class="txSend" onsubmit="return false;">
+        <input type="button" value="Join" onclick="join()">
+      </form>
+      <div class="etherscan-link"></div>
+
+      <div id="participants">
+        <h4>Participants</h4>
+        <ul>
+          <li><%=host%></li>
+        </ul>
+      </div>
+    </div>
+    <div id="ready">
+      <div class="etherscan-link"></div>
+    </div>
+    <div id="start">
+      <div class="etherscan-link"></div>
+    </div>
+  </body>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script>
+    const ABI = {
+      bomberman: [{"constant":true,"inputs":[],"name":"deliveryExplosionTime","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"bomberman","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"round","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getAllParticipants","outputs":[{"name":"","type":"address[]"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"reward","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"MAX_WINNERS","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"participants","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"stake","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_participantNumbers","type":"uint256"},{"name":"_stake","type":"uint256"}],"name":"openGame","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[],"name":"getAllPlayerStatus","outputs":[{"name":"","type":"address[]"},{"name":"","type":"bool[]"},{"name":"","type":"uint256[]"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"EXPLOSION_TIME_ROUND","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"}],"name":"deliver","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"endGame","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"gameStatus","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"openedTime","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"isExplosionTimeLeft","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"participantsLeft","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"JOIN_WAITING_TIME","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"rewardPerWinner","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"join","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[],"name":"explode","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"startNewRound","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"MIN_STAKE","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"lastDeliveryman","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"cancelGame","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"EXPLOSION_TIME_DELIVERY","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"MIN_GUESTS","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"MAX_GUESTS","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"CREDIT","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"alive","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"roundExplosionTime","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"host","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"readyGame","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"participantNumbers","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"credits","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"receiveReward","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"_host","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":false,"name":"guestNumbers","type":"uint256"},{"indexed":false,"name":"stake","type":"uint256"},{"indexed":false,"name":"openedTime","type":"uint256"}],"name":"GameOpened","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"participant","type":"address"},{"indexed":false,"name":"participants","type":"uint256"}],"name":"Joined","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"closedTime","type":"uint256"}],"name":"GameCanceled","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"totalReward","type":"uint256"}],"name":"GameReady","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"currentRound","type":"uint256"}],"name":"GameReset","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"round","type":"uint256"},{"indexed":false,"name":"roundExplosionTime","type":"uint256"}],"name":"GameStarted","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"from","type":"address"},{"indexed":false,"name":"to","type":"address"},{"indexed":false,"name":"deliveryman","type":"address"},{"indexed":false,"name":"leftCredits","type":"uint256"},{"indexed":false,"name":"bomberman","type":"address"}],"name":"DeliverFailed","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"from","type":"address"},{"indexed":false,"name":"to","type":"address"},{"indexed":false,"name":"deliveryman","type":"address"},{"indexed":false,"name":"deliveryExplosionTime","type":"uint256"}],"name":"BombDelivered","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"bomberman","type":"address"},{"indexed":false,"name":"deliveryman","type":"address"}],"name":"BombExploded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"participant","type":"address"}],"name":"Dead","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"round","type":"uint256"},{"indexed":false,"name":"winners","type":"uint256"},{"indexed":false,"name":"rewardPerWinner","type":"uint256"}],"name":"GameEnded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"receiver","type":"address"},{"indexed":false,"name":"rewardPerWinner","type":"uint256"}],"name":"RewardReceived","type":"event"}],
+    }
+    const socket = io();
+    let userAccount;
+    let bomberman;
+    let bombermanState = {};
+
+    window.addEventListener('load', function() {
+      if (typeof web3 !== 'undefined') {
+        window.web3 = new Web3(web3.currentProvider);
+      } else {
+        window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+      }
+      console.log(web3.version.api);
+
+      userAccount = undefined;
+      setInterval(function() {
+        if(web3.eth.accounts[0] !== userAccount) {
+          userAccount = web3.eth.accounts[0];
+          console.log('changed', userAccount);
+        }
+      }, 100);
+
+      bomberman = web3.eth.contract(ABI.bomberman).at("<%=address%>");
+      web3.eth.getBlockNumber((err, blockNumber) => {
+        loadAllState(blockNumber).then(() => {
+          changeGameStatus(bombermanState.gameStatus);
+          const events = bomberman.allEvents(null, {fromBlock: blockNumber});
+          events.watch(function(err, event) {
+            if (err) {
+              console.log(err);
+              return;
+            }
+            console.log(event.event, event.args);
+            switch (event.event) {
+              case 'GameOpened':
+                gameOpenedEventHandler(event);
+                break;
+              case 'Joined':
+                joinedEventHandler(event);
+                break;
+              case 'GameReady':
+                gameReadyEventHanlder(event);
+                break;
+              case 'GameStarted':
+                gameStartedEventHandler(event);
+                break;
+              case 'BombDelivered':
+                bombDeliveredEventHandler(event);
+                break;
+              default:
+                console.error('Unexpected Event: ' + event);
+                break;
+            }
+          });
+        });
+      });
+    });
+
+    function join() {
+      bomberman.join(
+        {from : userAccount},
+        function(err, txHash) {
+          const target = $("#join .etherscan-link");
+          target.children("*").remove();
+          if (err) {
+            target.text(err);
+          } else {
+            const link = `https://ropsten.etherscan.io/tx/${txHash}`;
+            target.append(`<a href="${link}">${link}</a>`);
+          }
+        }
+      );
+    }
+
+    function ready() {
+      bomberman.readyGame(
+        {from : userAccount},
+        function(err, txHash) {
+          const target = $("#join .etherscan-link");
+          target.children("*").remove();
+          if (err) {
+            target.text(err);
+          } else {
+            const link = `https://ropsten.etherscan.io/tx/${txHash}`;
+            target.append(`<a href="${link}">${link}</a>`);
+          }
+        }
+      );
+    }
+
+    function startNewRound() {
+      bomberman.join(
+        {from : userAccount},
+        function(err, txHash) {
+          const target = $("#join .etherscan-link");
+          target.children("*").remove();
+          if (err) {
+            target.text(err);
+          } else {
+            const link = `https://ropsten.etherscan.io/tx/${txHash}`;
+            target.append(`<a href="${link}">${link}</a>`);
+          }
+        }
+      );
+    }
+
+    function getFormObject(query) {
+      const serializedArray = query.serializeArray();
+      const output = {};
+      for (let i = 0; i < serializedArray.length; i++) {
+        output[serializedArray[i].name] = serializedArray[i].value;
+      }
+      return output;
+    }
+
+    let openTimer;
+    function gameOpenedEventHandler(event) {
+      changeGameStatus('OPENED');
+      openTimer = setInterval(() => {
+        let timeLeft = parseInt(event.args.openedTime.toString()) + bombermanState.JOIN_WAITING_TIME - Math.floor(Date.now() / 1000);
+        if (timeLeft < 0) {
+          timeLeft = 0;
+          clearTimeout(openTimer);
+        }
+        $('#gameStatus .timer').html(`<b>${timeLeft}</b> Seconds Left`);
+      }, 1000);
+    }
+
+    function joinedEventHandler(event) {
+      $('#join #participants ul').append(`<li>${event.args.participant}</li>`);
+      if (parseInt(event.args.participants.toString()) === bombermanState.participantNumbers) {
+        $('#join').append('<p>Fully Joined</p>');
+        $('#join .txSend').remove();
+        $('#join .etherscan-link').remove();
+        $('#ready').append(`
+      <form class="txSend" onsubmit="return false;">
+        <input type="button" value="Ready" onclick="ready()">
+      </form>`);
+      }
+    }
+
+    function gameReadyEventHanlder(event) {
+      changeGameStatus('READY');
+      clearTimeout(openTimer);
+      $('#gameStatus .timer').remove();
+      $('#totalReward').text('Total Reward: ' + event.args.totalReward.toString());
+      $('#ready .txSend').remove();
+      $('#ready .etherscan-link').remove();
+      $('#start').append(`
+      <form class="txSend" onsubmit="return false;">
+        <input type="button" value="Start" onclick="startNewRound()">
+      </form>`);
+    }
+
+    let roundExplosionTimer;
+    function gameStartedEventHandler(event) {
+      changeGameStatus('IN_GAME');
+      $('#gameStatus #round').text('Round: ' + event.args.round.toString());
+      roundExplosionTimer = setInterval(() => {
+        let timeLeft = parseInt(event.args.roundExplosionTime.toString()) - Math.floor(Date.now() / 1000);
+        if (timeLeft < 0) {
+          timeLeft = 0;
+          clearTimeout(roundExplosionTimer);
+        }
+        $('#explosionTime #roundExplosionTime').html(`<b>${timeLeft}</b> Seconds Left`);
+      }, 1000);
+      $('#start form').remove();
+      $('#start .etherscan-link').remove();
+    }
+
+    let deliveryExplosionTimer;
+    function bombDeliveredEventHandler(event) {
+      deliveryExplosionTimer = setInterval(() => {
+        let timeLeft = parseInt(event.args.deliveryExplosionTime.toString()) - Math.floor(Date.now() / 1000);
+        if (timeLeft < 0) {
+          timeLeft = 0;
+          clearTimeout(deliveryExplosionTimer);
+        }
+        $('#explosionTime #deliveryExplosionTime').html(`Bomb must be moved in <b>${timeLeft}</b> seconds`);
+      }, 1000);
+      $('#deliverLogs').append(`<p>from: ${event.args.from}, to: ${event.args.to}, by: ${event.args.deliveryman}</p>`)
+    }
+
+    function loadAllState(blockNumber) {
+      const promises = [];
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.MAX_GUESTS.call({}, blockNumber, (err, MAX_GUESTS) => {
+          bombermanState.MAX_GUESTS = parseInt(MAX_GUESTS.toString());
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.MIN_GUESTS.call({}, blockNumber, (err, MIN_GUESTS) => {
+          bombermanState.MIN_GUESTS = parseInt(MIN_GUESTS.toString());
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.MIN_STAKE.call({}, blockNumber, (err, MIN_STAKE) => {
+          bombermanState.MIN_STAKE = MIN_STAKE.toString();
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.MAX_WINNERS.call({}, blockNumber, (err, MAX_WINNERS) => {
+          bombermanState.MAX_WINNERS = parseInt(MAX_WINNERS.toString());
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.JOIN_WAITING_TIME.call({}, blockNumber, (err, JOIN_WAITING_TIME) => {
+          bombermanState.JOIN_WAITING_TIME = parseInt(JOIN_WAITING_TIME.toString());
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.EXPLOSION_TIME_DELIVERY.call({}, blockNumber, (err, EXPLOSION_TIME_DELIVERY) => {
+          bombermanState.EXPLOSION_TIME_DELIVERY = parseInt(EXPLOSION_TIME_DELIVERY.toString());
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.EXPLOSION_TIME_ROUND.call({}, blockNumber, (err, EXPLOSION_TIME_ROUND) => {
+          bombermanState.EXPLOSION_TIME_ROUND = parseInt(EXPLOSION_TIME_ROUND.toString());
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.CREDIT.call({}, blockNumber, (err, CREDIT) => {
+          bombermanState.CREDIT = parseInt(CREDIT.toString());
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.host.call({}, blockNumber, (err, host) => {
+          bombermanState.host = host;
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.stake.call({}, blockNumber, (err, stake) => {
+          bombermanState.stake = stake.toString();
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.participantNumbers.call({}, blockNumber, (err, participantNumbers) => {
+          bombermanState.participantNumbers = parseInt(participantNumbers.toString());
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.openedTime.call({}, blockNumber, (err, openedTime) => {
+          bombermanState.openedTime = parseInt(openedTime.toString());
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.round.call({}, blockNumber, (err, round) => {
+          bombermanState.round = parseInt(round.toString());
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.gameStatus.call({}, blockNumber, (err, gameStatus) => {
+          bombermanState.gameStatus = statusArr[parseInt(gameStatus.toString())];
+          resolve();
+        })
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.getAllParticipants.call({}, blockNumber, (err, participants) => {
+          bombermanState.participants = participants;
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.getAllPlayerStatus.call({}, blockNumber, (err, participants) => {
+          bombermanState.alive = participants[1];
+          bombermanState.credits = participants[2];
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.participantsLeft.call({}, blockNumber, (err, participantsLeft) => {
+          bombermanState.participantsLeft = parseInt(participantsLeft.toString());
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.bomberman.call({}, blockNumber, (err, bomberman) => {
+          bombermanState.bomberman = bomberman;
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.roundExplosionTime.call({}, blockNumber, (err, roundExplosionTime) => {
+          bombermanState.roundExplosionTime = parseInt(roundExplosionTime.toString());
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.lastDeliveryman.call({}, blockNumber, (err, lastDeliveryman) => {
+          bombermanState.lastDeliveryman = lastDeliveryman;
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.deliveryExplosionTime.call({}, blockNumber, (err, deliveryExplosionTime) => {
+          bombermanState.deliveryExplosionTime = parseInt(deliveryExplosionTime.toString());
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.reward.call({}, blockNumber, (err, reward) => {
+          bombermanState.reward = reward.toString();
+          resolve();
+        });
+      }));
+      promises.push(new Promise((resolve, reject) => {
+        bomberman.rewardPerWinner.call({}, blockNumber, (err, rewardPerWinner) => {
+          bombermanState.rewardPerWinner = rewardPerWinner.toString();
+          resolve();
+        });
+      }));
+      return Promise.all(promises);
+    }
+
+    function changeGameStatus(status) {
+      switch(status) {
+        case 'CREATED':
+          $('#gameStatus h2').text('Game Created');
+          break;
+        case 'OPENED':
+          $('#gameStatus h2').text('Game Opened');
+          break;
+        case 'READY':
+          $('#gameStatus h2').text('Game Ready');
+          break;
+        case 'IN_GAME':
+          $('#gameStatus h2').text('Game Started');
+          break;
+        case 'ENDED':
+          $('#gameStatus h2').text('Game Ended');
+          break;
+        case 'CANCELED':
+          $('#gameStatus h2').text('Game Canceled');
+          break;
+        default:
+          break;
+      }
+    }
+
+    var statusArr = ['CREATED', 'OPENED', 'READY', 'IN_GAME', 'ENDED', 'CANCELED'];
+  </script>
+</html>
