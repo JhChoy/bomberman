@@ -13,11 +13,11 @@
   "license": "ISC",
   "devDependencies": {
     "@openzeppelin/contracts": "^2.3.0",
-    "openzeppelin-test-helpers": "^0.4.2",
+    "chai": "^4.2.0",
     "eth-gas-reporter": "^0.2.9",
     "ganache-cli": "^6.5.1",
+    "openzeppelin-test-helpers": "^0.4.2",
     "truffle": "^5.0.30",
-    "chai": "^4.2.0",
     "web3": "^2.0.0-alpha"
   }
 }
